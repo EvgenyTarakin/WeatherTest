@@ -37,7 +37,6 @@ final class TodayWeatherCell: UICollectionViewCell {
     
     private lazy var imageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(systemName: "cross")
         imageView.contentMode = .scaleAspectFit
         
         return imageView
@@ -63,6 +62,23 @@ final class TodayWeatherCell: UICollectionViewCell {
         super.init(coder: coder)
     }
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        timeLabel.text = ""
+        weaterLabel.text = ""
+        imageView.image = nil
+    }
+    
+}
+
+// MARK: - func
+
+extension TodayWeatherCell {
+    func configurate(time: String, image: String, weather: String) {
+        timeLabel.text = time
+        weaterLabel.text = weather
+        imageView.image = UIImage(systemName: "cross")
+    }
 }
 
 // MARK: - private func

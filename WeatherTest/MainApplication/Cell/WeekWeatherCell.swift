@@ -37,7 +37,6 @@ final class WeekWeatherCell: UITableViewCell {
     
     private lazy var iconImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(systemName: "cross")
         imageView.contentMode = .scaleAspectFit
         
         return imageView
@@ -45,8 +44,8 @@ final class WeekWeatherCell: UITableViewCell {
     
     private lazy var minLabel: UILabel = {
         let label = UILabel()
-        label.text = "12"
-        label.textColor = .white
+        label.text = ""
+        label.textColor = .systemGray5
         label.font = .systemFont(ofSize: 18)
         
         return label
@@ -54,7 +53,7 @@ final class WeekWeatherCell: UITableViewCell {
     
     private lazy var maxLabel: UILabel = {
         let label = UILabel()
-        label.text = "30"
+        label.text = ""
         label.textColor = .white
         label.font = .systemFont(ofSize: 18)
         
@@ -72,6 +71,25 @@ final class WeekWeatherCell: UITableViewCell {
         super.init(coder: coder)
     }
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        dateLabel.text = ""
+        minLabel.text = ""
+        maxLabel.text = ""
+        iconImageView.image = nil
+    }
+    
+}
+
+// MARK: - func
+
+extension WeekWeatherCell {
+    func configurate(date: String, min: String, max: String) {
+        dateLabel.text = date
+        minLabel.text = min
+        maxLabel.text = max
+        iconImageView.image = UIImage(systemName: "cross")
+    }
 }
 
 // MARK: - private func

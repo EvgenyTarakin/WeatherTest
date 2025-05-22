@@ -13,10 +13,15 @@ final class ViewController: UIViewController {
 
     // MARK: - private property
     
-    private lazy var backView: UIView = {
+    private var networkService = NetworkService()
+    
+    private var model: Model?
+    
+    private lazy var loaderBackView: UIView = {
         let backView = UIView()
         backView.backgroundColor = .black.withAlphaComponent(0.5)
         backView.addSubview(activityIndicator)
+        backView.isHidden = true
         
         activityIndicator.snp.makeConstraints {
             $0.center.equalToSuperview()
@@ -27,6 +32,7 @@ final class ViewController: UIViewController {
     
     private lazy var activityIndicator: UIActivityIndicatorView = {
         let activityIndicator = UIActivityIndicatorView(style: .large)
+        activityIndicator.color = .white
         
         return activityIndicator
     }()
@@ -161,11 +167,7 @@ final class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         commonInit()
-    }
-    
-    override func viewWillLayoutSubviews() {
-        super.viewWillLayoutSubviews()
-        makeTableLayout()
+        loadInfo()
     }
 
 }
@@ -180,7 +182,7 @@ private extension ViewController {
         view.addSubview(nowStateLabel)
         view.addSubview(todayBackView)
         view.addSubview(weekBackView)
-//        view.addSubview(backView)
+        view.addSubview(loaderBackView)
         
         cityLabel.snp.makeConstraints {
             $0.top.equalTo(view.safeAreaLayoutGuide).inset(16)
@@ -198,11 +200,10 @@ private extension ViewController {
         weekBackView.snp.makeConstraints {
             $0.top.equalTo(todayBackView.snp.bottom).inset(-16)
             $0.left.right.equalToSuperview().inset(16)
-//            $0.bottom.equalTo(view.safeAreaLayoutGuide)
         }
-//        backView.snp.makeConstraints {
-//            $0.top.bottom.left.right.equalToSuperview()
-//        }
+        loaderBackView.snp.makeConstraints {
+            $0.top.bottom.left.right.equalToSuperview()
+        }
     }
     
     func makeCollectionLayout() -> UICollectionViewLayout {
@@ -229,7 +230,24 @@ private extension ViewController {
     }
     
     func loadInfo() {
-        
+        loaderBackView.isHidden = false
+        activityIndicator.startAnimating()
+        networkService.startLoading(complition: { [weak self] model in
+            guard let self else { return }
+            loaderBackView.isHidden = true
+            activityIndicator.stopAnimating()
+            
+            self.model = model
+            updateInfo(model: model)
+        })
+    }
+    
+    func updateInfo(model: Model) {
+        cityLabel.text = model.location?.name
+        nowStateLabel.text = "\(model.current?.tempC ?? 0.0)" + " | " + (model.current?.condition?.text ?? "")
+        collectionView.reloadData()
+        tableView.reloadData()
+        makeTableLayout()
     }
 }
 
@@ -241,12 +259,18 @@ extension ViewController: UICollectionViewDelegate { }
 
 extension ViewController: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 20
+        return (model?.forecast?.forecastday?[0].hour?.count ?? 0) + (model?.forecast?.forecastday?[1].hour?.count ?? 0)
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TodayWeatherCell.reuseIdentifier, for: indexPath) as? TodayWeatherCell
         else { return UICollectionViewCell() }
+        let data = (model?.forecast?.forecastday?[0].hour ?? []) + (model?.forecast?.forecastday?[1].hour ?? [])
+        let hour = data[indexPath.item].time?.getHour() ?? ""
+        let weather = "\(Int(data[indexPath.item].tempC ?? 0.0))°"
+        cell.configurate(time: hour,
+                         image: "",
+                         weather: weather)
         
         return cell
     }
@@ -262,12 +286,16 @@ extension ViewController: UITableViewDelegate {
 
 extension ViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 7
+        return model?.forecast?.forecastday?.count ?? 0
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: WeekWeatherCell.reuseIdentifier, for: indexPath) as? WeekWeatherCell
         else { return UITableViewCell() }
+        let data = model?.forecast?.forecastday?[indexPath.item]
+        cell.configurate(date: data?.date?.getDate() ?? "",
+                         min: "\(Int(data?.day?.mintempC ?? 0.0))",
+                         max: "\(Int(data?.day?.maxtempC ?? 0.0))")
         
         return cell
     }
