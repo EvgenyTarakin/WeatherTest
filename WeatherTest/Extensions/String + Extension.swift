@@ -29,7 +29,7 @@ extension String {
         let date = dateFormatter.date(from: self) ?? Date()
         
         let newDateFormatter = DateFormatter()
-        newDateFormatter.dateFormat = "dd.MM.yyyy"
+        newDateFormatter.dateFormat = "dd.MM"
         let newDate = newDateFormatter.string(from: date)
         
         return newDate

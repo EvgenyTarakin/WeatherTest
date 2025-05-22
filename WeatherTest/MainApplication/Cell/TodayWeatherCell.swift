@@ -7,6 +7,7 @@
 
 import UIKit
 import SnapKit
+import Kingfisher
 
 final class TodayWeatherCell: UICollectionViewCell {
     
@@ -77,7 +78,7 @@ extension TodayWeatherCell {
     func configurate(time: String, image: String, weather: String) {
         timeLabel.text = time
         weaterLabel.text = weather
-        imageView.image = UIImage(systemName: "cross")
+        imageView.kf.setImage(with: URL(string: "http:" + image))
     }
 }
 

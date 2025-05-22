@@ -7,6 +7,7 @@
 
 import UIKit
 import SnapKit
+import Kingfisher
 
 final class WeekWeatherCell: UITableViewCell {
     
@@ -19,7 +20,7 @@ final class WeekWeatherCell: UITableViewCell {
     private lazy var stackView: UIStackView = {
         let stackView = UIStackView(arrangedSubviews: [dateLabel, iconImageView, minLabel, maxLabel])
         stackView.axis = .horizontal
-        stackView.distribution = .fill
+        stackView.distribution = .equalCentering
         stackView.alignment = .fill
         stackView.spacing = 16
         
@@ -84,11 +85,11 @@ final class WeekWeatherCell: UITableViewCell {
 // MARK: - func
 
 extension WeekWeatherCell {
-    func configurate(date: String, min: String, max: String) {
+    func configurate(date: String, min: String, max: String, image: String) {
         dateLabel.text = date
         minLabel.text = min
         maxLabel.text = max
-        iconImageView.image = UIImage(systemName: "cross")
+        iconImageView.kf.setImage(with: URL(string: "http:" + image))
     }
 }
 

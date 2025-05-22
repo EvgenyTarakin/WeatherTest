@@ -177,7 +177,9 @@ final class ViewController: UIViewController {
 private extension ViewController {
     func commonInit() {
         view.backgroundColor = .systemBlue
-        
+    }
+    
+    func makeMainLayout() {
         view.addSubview(cityLabel)
         view.addSubview(nowStateLabel)
         view.addSubview(todayBackView)
@@ -238,16 +240,32 @@ private extension ViewController {
             activityIndicator.stopAnimating()
             
             self.model = model
-            updateInfo(model: model)
+            
+            if model == nil {
+                showAlert()
+            } else {
+                updateInfo(model: model)
+            }
         })
     }
     
-    func updateInfo(model: Model) {
-        cityLabel.text = model.location?.name
-        nowStateLabel.text = "\(model.current?.tempC ?? 0.0)" + " | " + (model.current?.condition?.text ?? "")
+    func updateInfo(model: Model?) {
+        makeMainLayout()
+        cityLabel.text = model?.location?.name
+        nowStateLabel.text = "\(Int(model?.current?.tempC ?? 0.0))°" + " | " + (model?.current?.condition?.text ?? "")
         collectionView.reloadData()
         tableView.reloadData()
         makeTableLayout()
+    }
+    
+    func showAlert() {
+        let alert = UIAlertController(title: "Проблема с соединением", message: nil, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Перезагрузить", style: .default, handler: { [weak self] _ in
+            guard let self else { return }
+            self.loadInfo()
+        }))
+        
+        present(alert, animated: true)
     }
 }
 
@@ -267,9 +285,10 @@ extension ViewController: UICollectionViewDataSource {
         else { return UICollectionViewCell() }
         let data = (model?.forecast?.forecastday?[0].hour ?? []) + (model?.forecast?.forecastday?[1].hour ?? [])
         let hour = data[indexPath.item].time?.getHour() ?? ""
+        let icon = data[indexPath.item].condition?.icon ?? ""
         let weather = "\(Int(data[indexPath.item].tempC ?? 0.0))°"
         cell.configurate(time: hour,
-                         image: "",
+                         image: icon,
                          weather: weather)
         
         return cell
@@ -294,8 +313,9 @@ extension ViewController: UITableViewDataSource {
         else { return UITableViewCell() }
         let data = model?.forecast?.forecastday?[indexPath.item]
         cell.configurate(date: data?.date?.getDate() ?? "",
-                         min: "\(Int(data?.day?.mintempC ?? 0.0))",
-                         max: "\(Int(data?.day?.maxtempC ?? 0.0))")
+                         min: "мин. \(Int(data?.day?.mintempC ?? 0.0))°",
+                         max: "макс. \(Int(data?.day?.maxtempC ?? 0.0))°",
+                         image: data?.day?.condition?.icon ?? "")
         
         return cell
     }
